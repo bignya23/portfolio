@@ -149,7 +149,7 @@ className="w-full max-w-full lg:w-1/4 bg-[#1e1e1e]/80 backdrop-blur-md p-6 lg:h-
             <motion.a whileHover={{ scale: 1.1 }} href="https://github.com/bignya23" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00FFD1] transition-colors">
               <Github size={24} />
             </motion.a>
-            <motion.a whileHover={{ scale: 1.1 }} href="https://linkedin.com/bignya" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00FFD1] transition-colors">
+            <motion.a whileHover={{ scale: 1.1 }} href="https://linkedin.com/in/bignya" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00FFD1] transition-colors">
               <Linkedin size={24} />
             </motion.a>
             <motion.a whileHover={{ scale: 1.1 }} href="https://instagram.com/gogoi_bignya" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#00FFD1] transition-colors">
