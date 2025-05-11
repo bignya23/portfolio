@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import json
 from pydantic import BaseModel
 from model import output_pipeline
@@ -18,6 +19,11 @@ conversation_history = ""
 
 class ChatRequest(BaseModel):
     message: str
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("favicon.ico")
 
 
 @app.get("/")
