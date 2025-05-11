@@ -6,8 +6,18 @@ from google import genai
 from google.genai import types
 from prompts import MAIN_PROMPT
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 load_dotenv()
+
+class Links(BaseModel):
+    link_name : str
+    main_link : str
+
+class BotResponse(BaseModel):
+    main_response : str
+    links : List[Links]
+    
 
 # Define the function declaration for the model
 portfolio_tool = {
@@ -120,12 +130,12 @@ class PortfolioAssistant:
         self.tools = types.Tool(function_declarations=[portfolio_tool])
         self.config = types.GenerateContentConfig(tools=[self.tools])
 
-    def handle_query(self, query: str) -> str:
+    def handle_query(self, query: str, conversation_history : str) -> str:
         """Process a visitor's query and return a response"""
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.0-flash",
-                contents=MAIN_PROMPT.format(user_query=query),
+                contents=MAIN_PROMPT.format(user_query=query, conversation_history=conversation_history),
                 config=self.config
             )
 
@@ -148,7 +158,7 @@ class PortfolioAssistant:
                             portfolio_content = self.portfolio_data.get_sections(
                                 sections, detail_level, focus_area
                             )
-                            return self._format_portfolio_response(portfolio_content, query)
+                            return self._format_portfolio_response(portfolio_content, query, conversation_history=conversation_history)
                         else:
                             return "I don't know how to handle that request."
 
@@ -158,8 +168,8 @@ class PortfolioAssistant:
 
             # Fallback to top-level text if available
             if response and response.text:
-                return response.text
-
+                return self._format_portfolio_response(response.text, query, conversation_history)
+            
             return "I couldn't generate a response. Please try a different question."
 
         except Exception as e:
@@ -169,27 +179,41 @@ class PortfolioAssistant:
         
 
     
-    def _format_portfolio_response(self, content: Dict, query: str) -> str:
+    def _format_portfolio_response(self, content: Dict, query: str, conversation_history : str) -> str:
         """Format the portfolio content into a natural language response"""
         prompt = f"""
-        Based on the following portfolio information and the original query: "{query}",
-        please generate a helpful, natural-sounding response that answers the query
-        using only the information provided. Do not add any information that is not
-        included in the portfolio data.
+            Based on the provided portfolio information and the query: "{query}", 
+            please generate a helpful, natural-sounding response that directly answers the question.
+            Only use information contained in the portfolio data.
 
-        Note:
-        Output the response in plain text.
+            Guidelines:
+            - Output in plain text with proper spacing and line breaks
+            - Use a confident, slightly witty tone to keep the conversation engaging
+            - Ensure all responses are professional and appropriate for recruiters and clients
+            - Include relevant links in a separate section at the end of your response
+            - Present information in organized bullet points when appropriate
+            - Refer to me using he/him pronouns
+            - Maintain conversation context by referencing previous exchanges when relevant
+
+            Important:
+            - No markdown formatting, asterisks, or emojis
+            - Prioritize clarity and completeness in your answers
+            - Be concise yet comprehensive
         
         Portfolio data:
         {json.dumps(content, indent=2)}
+
+        CONVERSATION HISTORY :
+        {conversation_history}
         """
     
 
         response = self.client.models.generate_content(
             model="gemini-2.0-flash",
             contents=prompt,
-            config={"temperature":0.8, 
-                    "max_output_tokens":1024}
+            config={ "response_schema" : BotResponse,
+                    'response_mime_type': 'application/json',},
+            
         )
 
         
@@ -200,17 +224,19 @@ class PortfolioAssistant:
 
 
 
-def output_pipeline(query : str):
+def output_pipeline(query : str, conversation_history : str):
    
     api_key = os.getenv("GEMINI_API_KEY")
     
-    portfolio_data = PortfolioData("portfolio_data.json")
+    portfolio_data = PortfolioData(r"portfolio_data.json")
     
     assistant = PortfolioAssistant(api_key, portfolio_data)
     
-    response = assistant.handle_query(query)
+    response = assistant.handle_query(query, conversation_history)
     return response 
 
 if __name__ == "__main__":
     while True:
-        output_pipeline("")
+        query = input("user : ")
+        conversation_history += f"User : {query}"
+        print(output_pipeline(query=query, conversation_history=conversation_history))

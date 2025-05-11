@@ -14,6 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+conversation_history = ""
 
 class ChatRequest(BaseModel):
     message: str
@@ -26,10 +27,23 @@ def root():
 
 @app.post("/api/chat")
 def chat_endpoint(message : ChatRequest):
-
+    global conversation_history
     query = message.message.strip()
     print("User Asked : ", query)
+    conversation_history += f"User : {query}"
+    response = output_pipeline(query=query, conversation_history=conversation_history)
+    # print(conversation_history)
+    conversation_history += f"Cortex : {response}"
 
-    response = output_pipeline(query=query)
-    # print(type(response))
-    return {"reply": str(response)}
+
+    if isinstance(response, str):
+        try:
+            response_dict = json.loads(response)
+        except json.JSONDecodeError:
+            # fallback if response is just a plain string
+            return {"main_response": response, "links": []}
+        return response_dict
+    elif isinstance(response, dict):
+        return response
+    else:
+        return {"main_response": str(response), "links": []}

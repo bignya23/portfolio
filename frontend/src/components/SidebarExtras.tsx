@@ -70,7 +70,7 @@ export const ContactCTA = () => {
   return (
     <motion.a
       whileHover={{ scale: 1.02, boxShadow: '0 0 8px #00FFD1' }}
-      href="mailto:bignya19@gmail.com?subject=Let's%20Talk&body=Hello%20Bignya,%0A%0AI'm%20interested%20in%20talking%20to%20you%20about%20a%20project.%0A%0ALooking%20forward%20to%20hearing%20from%20you!"
+      href="mailto:bignya25@gmail.com?subject=Let's%20Talk&body="
       className="w-full mt-6 bg-[#00FFD1]/10 border border-[#00FFD1]/40 rounded-lg px-4 py-2 text-[#00FFD1] hover:bg-[#00FFD1]/20 transition-colors flex items-center justify-center gap-2"
       target="_blank"
       rel="noopener noreferrer"

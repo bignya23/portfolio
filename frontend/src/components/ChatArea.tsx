@@ -4,10 +4,10 @@ import { Send } from 'lucide-react';
 import { Message } from '../types';
 
 const PRESET_QUESTIONS = [
-  "What are your top projects?",
-  "Tell me about your AI work",
-  "Show skills and tools",
-  "Contact or resume download"
+  "What are his projects?",
+  "Tell me about his AI experience",
+  "What technical skills does he have?",
+  "What's his work experience?"
 ];
 
 const ChatArea: React.FC = () => {
@@ -45,9 +45,10 @@ const ChatArea: React.FC = () => {
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.reply,
-        sender: 'bot',
-        timestamp: new Date()
+        text: data.main_response || data.reply || "No response.",
+        sender: 'Cortex',
+        timestamp: new Date(),
+        links: data.links || []
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -55,7 +56,7 @@ const ChatArea: React.FC = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "Sorry, I couldn't process your request. Please try again.",
-        sender: 'bot',
+        sender: 'Cortex',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -108,21 +109,37 @@ const ChatArea: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className={`mb-4 ${msg.sender === 'bot' ? 'pr-12' : 'pl-12'}`}
+                className={`mb-4 ${msg.sender === 'Cortex' ? 'pr-12' : 'pl-12'}`}
               >
                 <div className="flex flex-col">
-                  <span className={`text-xs mb-1 ${msg.sender === 'bot' ? 'text-[#00FFD1]' : 'text-gray-400'}`}>
-                    {msg.sender === 'bot' ? 'Bot' : 'You'}
+                  <span className={`text-xs mb-1 ${msg.sender === 'Cortex' ? 'text-[#00FFD1]' : 'text-gray-400'}`}>
+                    {msg.sender === 'Cortex' ? 'Cortex' : 'You'}
                   </span>
                   <motion.div
                     initial={{ scale: 0.95 }}
                     animate={{ scale: 1 }}
-                    className={`rounded-lg p-3 ${msg.sender === 'bot'
+                    className={`rounded-lg p-3 whitespace-pre-wrap ${msg.sender === 'Cortex'
                       ? 'bg-[#1a1a1a] text-gray-300'
                       : 'bg-[#2a2a2a] text-white'
                       }`}
                   >
                     {msg.text}
+
+                    {msg.links && msg.links.length > 0 && (
+                      <div className="mt-3 p-3 border border-[#00FFD1]/40 rounded-lg bg-[#0f0f0f] space-y-2">
+                        {msg.links.map((link, index) => (
+                          <a
+                            key={index}
+                            href={link.main_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#00FFD1] underline hover:text-[#00FFD1]/80 block text-sm"
+                          >
+                            🔗 {link.link_name}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 </div>
               </motion.div>
