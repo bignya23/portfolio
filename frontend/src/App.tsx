@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
+import { Analytics } from "@vercel/analytics/next"
 
 function App() {
   return (
