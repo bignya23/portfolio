@@ -10,6 +10,43 @@ const PRESET_QUESTIONS = [
   "What's his work experience?"
 ];
 
+const TypingText: React.FC<{ text: string }> = ({ text }) => {
+  const [displayed, setDisplayed] = useState('');
+
+  useEffect(() => {
+    let index = 0;
+    const speed = 12; // milliseconds per character for fast typing
+    const timer = setInterval(() => {
+      index++;
+      setDisplayed(text.slice(0, index));
+      if (index >= text.length) clearInterval(timer);
+    }, speed);
+    return () => clearInterval(timer);
+  }, [text]);
+
+  // Split the text for bold formatting
+  const parts = displayed.split(/(\*\*(.*?)\*\*)/g); 
+
+  return (
+    <span>
+      {parts.map((part, i) => {
+        // Apply bold only if the text is wrapped in **
+        const match = /\*\*(.*?)\*\*/.exec(part);
+        if (match) {
+          return (
+            <strong key={i} className="font-semibold">
+              {match[1]} {/* Only render the content inside ** */}
+            </strong>
+          );
+        }
+        return <span key={i}>{part}</span>; // Render normal text
+      })}
+    </span>
+  );
+};
+
+
+
 const ChatArea: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -19,6 +56,12 @@ const ChatArea: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // This function cleans the response text from duplication issues
+  const cleanResponseText = (text: string) => {
+    // Fix the pattern where bold project names are immediately followed by themselves
+    return text.replace(/\*\*([\w\s]+)\*\*\1/g, '**$1**');
+  };
 
   const handleSend = async (text: string) => {
     if (!text.trim()) return;
@@ -35,17 +78,20 @@ const ChatArea: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://portfolio-production-cb2a.up.railway.app/api/chat', {
+      const response = await fetch('http://127.0.0.1:8000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })
       });
 
       const data = await response.json();
+      
+      // Clean the response text to remove duplications
+      const cleanedResponseText = cleanResponseText(data.main_response || data.reply || "No response.");
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.main_response || data.reply || "No response.",
+        text: cleanedResponseText,
         sender: 'Cortex',
         timestamp: new Date(),
         links: data.links || []
@@ -123,7 +169,7 @@ const ChatArea: React.FC = () => {
                       : 'bg-[#2a2a2a] text-white'
                       }`}
                   >
-                    {msg.text}
+                    {msg.sender === 'Cortex' ? <TypingText text={msg.text} /> : msg.text}
 
                     {msg.links && msg.links.length > 0 && (
                       <div className="mt-3 p-3 border border-[#00FFD1]/40 rounded-lg bg-[#0f0f0f] space-y-2">

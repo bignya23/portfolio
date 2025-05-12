@@ -4,15 +4,15 @@ from typing import Dict, List, Optional, Union
 from dataclasses import dataclass
 from google import genai
 from google.genai import types
-from prompts import MAIN_PROMPT
+from prompts import MAIN_PROMPT, FINAL_PROMPT
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
 class Links(BaseModel):
-    link_name : str
-    main_link : str
+    link_name : str = Field(description="Name of the link")
+    main_link : str = Field(description= "The main link in http/https")
 
 class BotResponse(BaseModel):
     main_response : str
@@ -135,9 +135,10 @@ class PortfolioAssistant:
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.0-flash",
-                contents=MAIN_PROMPT.format(user_query=query, conversation_history=conversation_history),
+                contents=[MAIN_PROMPT.format(user_query=query, conversation_history=conversation_history)],
                 config=self.config
             )
+            print(query)
 
             # Ensure we have at least one candidate and one content part
             if response and response.candidates:
@@ -164,7 +165,8 @@ class PortfolioAssistant:
 
                     # If no function_call but there's plain text, return it
                     if getattr(part, "text", None):
-                        return part.text
+                        return self._format_portfolio_response(part.text, query, conversation_history)
+
 
             # Fallback to top-level text if available
             if response and response.text:
@@ -181,41 +183,15 @@ class PortfolioAssistant:
     
     def _format_portfolio_response(self, content: Dict, query: str, conversation_history : str) -> str:
         """Format the portfolio content into a natural language response"""
-        prompt = f"""
-            Based on the provided portfolio information and the query: "{query}", 
-            please generate a helpful, natural-sounding response that directly answers the question.
-            Only use information contained in the portfolio data.
-
-            Guidelines:
-            - Output in plain text with proper spacing and line breaks
-            - Use a confident, slightly witty tone to keep the conversation engaging
-            - Ensure all responses are professional and appropriate for recruiters and clients
-            - Include relevant links in a separate section at the end of your response
-            - Present information in organized bullet points when appropriate
-            - Refer to me using he/him pronouns
-            - Maintain conversation context by referencing previous exchanges when relevant
-
-            Important:
-            - No markdown formatting, asterisks, or emojis
-            - Prioritize clarity and completeness in your answers
-            - Be concise yet comprehensive
-        
-        Portfolio data:
-        {json.dumps(content, indent=2)}
-
-        CONVERSATION HISTORY :
-        {conversation_history}
-        """
-    
+       
 
         response = self.client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=prompt,
+            contents=[FINAL_PROMPT.format(query= query, conversation_history=conversation_history, content=json.dumps(content, indent=2))],
             config={ "response_schema" : BotResponse,
                     'response_mime_type': 'application/json',},
             
         )
-
         
         if response and response.text:
             return response.text
@@ -227,16 +203,21 @@ class PortfolioAssistant:
 def output_pipeline(query : str, conversation_history : str):
    
     api_key = os.getenv("GEMINI_API_KEY")
-    
-    portfolio_data = PortfolioData(r"portfolio_data.json")
+    base_dir = os.path.dirname(__file__)
+    file_path = os.path.join(base_dir, "portfolio_data.json")
+    portfolio_data = PortfolioData(file_path)
     
     assistant = PortfolioAssistant(api_key, portfolio_data)
     
     response = assistant.handle_query(query, conversation_history)
     return response 
 
+
+conversation_history = ""
 if __name__ == "__main__":
     while True:
         query = input("user : ")
         conversation_history += f"User : {query}"
-        print(output_pipeline(query=query, conversation_history=conversation_history))
+        response = output_pipeline(query=query, conversation_history=conversation_history)
+        print(response)
+        conversation_history += f"Cortex: {response}"

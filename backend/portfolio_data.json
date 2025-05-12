@@ -2,7 +2,7 @@
   "bio": {
     "name": "Bignya Protim Gogoi",
     "headline": "Machine Learning Enthusiast & Full Stack Developer",
-    "summary": "Driven Computer Science undergraduate with a strong foundation in machine learning, full stack development, and systems programming. Experienced in building impactful AI-driven tools and infrastructure-level software.",
+    "summary": "Driven Computer Science undergraduate with a strong foundation in machine learning, ans low level programming. Experienced in building impactful AI-driven tools and infrastructure-level software.",
     "values": ["Innovation", "Accessibility", "Technical Excellence"],
     "personal_interests": ["AI Applications", "Drone Tech", "Open Source"],
     "career_goals": "To build intelligent systems that solve real-world problems and promote inclusivity through technology."
@@ -17,7 +17,7 @@
   "projects": [
     {
       "title": "NeuroSphere",
-      "description": "A tech-driven platform for supporting neurodiverse individuals with tools like resume maker, voice aids, and mock interviews.",
+      "description": "A tech-driven platform for supporting neurodiverse individuals with tools like resume maker, voice aids, and mock interviews. ",
       "technologies": ["Python", "Django", "React", "RestAPI", "GenAI"],
       "role": "Full Stack Developer",
       "outcome": "Improved accessibility by 85% and reduced cognitive load by 45%.",
@@ -90,7 +90,7 @@
     }
   ],
   "contact": {
-    "email": "bignya_ug_23@cse.nits.ac.in",
+    "email": "",
     "linkedin": "https://www.linkedin.com/in/bignya",
     "github": "https://github.com/bignya23"
   },

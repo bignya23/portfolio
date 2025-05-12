@@ -41,6 +41,7 @@ def chat_endpoint(message : ChatRequest):
     # print(conversation_history)
     conversation_history += f"Cortex : {response}"
 
+    print(response)
 
     if isinstance(response, str):
         try:
